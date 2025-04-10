@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
 class CustomGoogleMap extends StatefulWidget {
   const CustomGoogleMap({super.key});
 
@@ -10,10 +10,19 @@ class CustomGoogleMap extends StatefulWidget {
 }
 
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
-  late CameraPosition controllerInitialCamerPosition;
+  late CameraPosition initialCamerPosition;
   late GoogleMapController googleMapController;
+  String? style;
   @override
   void initState() {
+    initialCamerPosition = const CameraPosition(
+      zoom: 12,
+      target: LatLng(
+        13.046279282623589,
+        77.59288321390162,
+      ),
+    );
+    initStyleMap();
     super.initState();
   }
 
@@ -28,17 +37,13 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     return Stack(
       children: [
         GoogleMap(
+          style: style,
           zoomControlsEnabled: false,
           onMapCreated: (controller) {
             googleMapController = controller;
+            // initStyleMap();
           },
-          initialCameraPosition: const CameraPosition(
-            zoom: 12,
-            target: LatLng(
-              13.046279282623589,
-              77.59288321390162,
-            ),
-          ),
+          initialCameraPosition: initialCamerPosition,
         ),
         Positioned(
           bottom: 16,
@@ -48,7 +53,10 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
             onPressed: () {
               googleMapController.animateCamera(
                 CameraUpdate.newLatLng(
-                  const LatLng(12.320505273066722, 76.62978062497629),
+                  const LatLng(
+                    12.320505273066722,
+                    76.62978062497629,
+                  ),
                 ),
               );
             },
@@ -57,5 +65,12 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
         )
       ],
     );
+  }
+
+  void initStyleMap() async {
+    style = await rootBundle.loadString('assets/map_style/dark_map.json');
+    setState(() {});
+    // var darkMap = await DefaultAssetBundle.of(context).loadString("assets/map_style/dark_map.json");
+    // googleMapController.setMapStyle(darkMap);
   }
 }
