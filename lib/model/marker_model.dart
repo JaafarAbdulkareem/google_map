@@ -28,5 +28,13 @@ class MarkerModel {
         77.55100088504592,
       ),
     ),
+    MarkerModel(
+      id: "2",
+      name: "TEse",
+      latLng: LatLng(
+        13.09747458777382,
+        77.5840925450986,
+      ),
+    ),
   ];
 }
