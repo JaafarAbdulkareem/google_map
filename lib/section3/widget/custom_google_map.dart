@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_map/model/marker_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CustomGoogleMap extends StatefulWidget {
@@ -13,6 +14,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCamerPosition;
   late GoogleMapController googleMapController;
   String? style;
+  late Set<Marker> markers;
   @override
   void initState() {
     initialCamerPosition = const CameraPosition(
@@ -23,6 +25,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       ),
     );
     initStyleMap();
+    initMarkerMap();
     super.initState();
   }
 
@@ -37,7 +40,8 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     return Stack(
       children: [
         GoogleMap(
-          style: style,
+          // style: style,
+          markers: markers,
           zoomControlsEnabled: false,
           onMapCreated: (controller) {
             googleMapController = controller;
@@ -72,5 +76,22 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     setState(() {});
     // var darkMap = await DefaultAssetBundle.of(context).loadString("assets/map_style/dark_map.json");
     // googleMapController.setMapStyle(darkMap);
+  }
+
+  // Future<Uint8List> resetIcon ()async{
+
+  // }
+
+  void initMarkerMap() {
+    markers = MarkerModel.marker
+        .map(
+          (element) => Marker(
+            // icon:AssetMapBitmap("")  ,
+            markerId: MarkerId(element.id),
+            position: element.latLng,
+            infoWindow: InfoWindow(title: element.name),
+          ),
+        )
+        .toSet();
   }
 }
