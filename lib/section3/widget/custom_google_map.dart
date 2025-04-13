@@ -18,17 +18,20 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late GoogleMapController googleMapController;
   String? style;
   Set<Marker> markers = {};
+  Set<Polyline> polylines = {};
+  Set<Polygon> polygon = {};
   @override
   void initState() {
     initialCamerPosition = const CameraPosition(
-      zoom: 12,
+      // zoom: 12,
       target: LatLng(
         13.046279282623589,
         77.59288321390162,
       ),
     );
-    initStyleMap();
+    // initStyleMap();
     initMarkerMap();
+    initPolyline();
     super.initState();
   }
 
@@ -44,6 +47,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       children: [
         GoogleMap(
           // style: style,
+          polylines: polylines,
           markers: markers,
           zoomControlsEnabled: false,
           onMapCreated: (controller) {
@@ -100,22 +104,23 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     // { give me all markers have same id and different position }
     markers.addAll(MarkerModel.marker
         .map(
-          (element) => element.id == "1"? Marker(
-            icon: AssetMapBitmap(
-              //you’re passing a new object each time
-              "assets/images/dragon-removebg-preview.png",
-              width: 40,
-              height: 40,
-            ),
-            markerId: MarkerId(element.id),
-            position: element.latLng,
-            infoWindow: InfoWindow(title: element.name),
-          ):null,
-        ).whereType<Marker>()//delete null value . just take type have marker DataType
+          (element) => element.id == "1"
+              ? Marker(
+                  icon: AssetMapBitmap(
+                    //you’re passing a new object each time
+                    "assets/images/dragon-removebg-preview.png",
+                    width: 40,
+                    height: 40,
+                  ),
+                  markerId: MarkerId(element.id),
+                  position: element.latLng,
+                  infoWindow: InfoWindow(title: element.name),
+                )
+              : null,
+        )
+        .whereType<
+            Marker>() //delete null value . just take type have marker DataType
         .toSet());
-    setState(() {
-      log("length : ${markers.length}");
-    });
 
 // { give just the last markers when markers have same id if want all appear make unique id }
 //     Uint8List icon =
@@ -137,5 +142,43 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
 //     setState(() {
 //       log("length : ${markers.length}");
 //     });
+  }
+
+  void initPolyline() {
+    Polyline polyline = const Polyline(
+      polylineId: PolylineId("1"),
+      zIndex:
+          2, // z-index, so that lower values means drawn earlier, and thus appearing to be closer to the surface of the Earth.
+      width: 2,
+      color: Colors.red,
+      geodesic:
+          true, //polyline should be drawn as geodesics, as opposed to straight lines on the Mercator projection.
+      // visible: false, //true : appear
+      startCap: Cap.squareCap,
+      endCap: Cap.roundCap,
+      points: [
+        LatLng(13.014332027132125, 77.5658971904098),
+        LatLng(13.014776967628048, 77.58393569709125),
+        LatLng(13.04310320071611, 77.59040520370696),
+        LatLng(13.041916826676411, 77.5967224866376),
+        LatLng(13.04087874472384, 77.62381830258106),
+        LatLng(13.028347268983548, 77.63196226973263),
+      ],
+    );
+    polylines.add(polyline);
+    Polyline polyline2 = const Polyline(
+      polylineId: PolylineId("1"),
+      width: 2,
+      color: Colors.green,
+      // visible: false, //appear
+      startCap: Cap.squareCap,
+      endCap: Cap.roundCap,
+      points: [
+        LatLng(-80.19805071707997, 89.51698173417829),
+        LatLng(13.041916826676411, 77.5967224866376),
+        LatLng(84.36460795500405, 69.48883687225583),
+      ],
+    );
+    polylines.add(polyline2);
   }
 }
