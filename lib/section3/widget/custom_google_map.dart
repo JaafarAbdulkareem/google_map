@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_map/model/marker_model.dart';
@@ -19,11 +17,12 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   String? style;
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
-  Set<Polygon> polygon = {};
+  Set<Polygon> polygons = {};
+  Set<Circle> circles = {};
   @override
   void initState() {
     initialCamerPosition = const CameraPosition(
-      // zoom: 12,
+      zoom: 12,
       target: LatLng(
         13.046279282623589,
         77.59288321390162,
@@ -31,7 +30,9 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
     // initStyleMap();
     initMarkerMap();
-    initPolyline();
+    // initPolyline();
+    // initPolygon();
+    initCircle();
     super.initState();
   }
 
@@ -47,7 +48,9 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       children: [
         GoogleMap(
           // style: style,
-          polylines: polylines,
+          // polylines: polylines,
+          // polygons: polygons,
+          circles: circles,
           markers: markers,
           zoomControlsEnabled: false,
           onMapCreated: (controller) {
@@ -180,5 +183,48 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       ],
     );
     polylines.add(polyline2);
+  }
+
+  void initPolygon() {
+    Polygon polygon = Polygon(
+      polygonId: const PolygonId("1"),
+      strokeWidth: 1,
+      // fillColor: Colors.grey.withAlpha(120),
+      fillColor: Colors.grey.withOpacity(0.3),
+      strokeColor: Colors.grey,
+      points: const [
+        LatLng(13.014332027132125, 77.5658971904098),
+        LatLng(13.014776967628048, 77.58393569709125),
+        LatLng(13.04310320071611, 77.59040520370696),
+        LatLng(13.041916826676411, 77.5967224866376),
+        LatLng(13.04087874472384, 77.62381830258106),
+        LatLng(13.028347268983548, 77.63196226973263),
+      ],
+      holes: const [
+        [
+          LatLng(13.050369484489758, 77.60528859717826),
+          LatLng(13.031521055069245, 77.60133846249931),
+          LatLng(13.031082048539954, 77.60322673769438),
+          LatLng(13.03191825078206, 77.60421379063727),
+          LatLng(13.032817165041957, 77.60339839907576),
+        ]
+      ],
+    );
+
+    polygons.add(polygon);
+  }
+
+  void initCircle() {
+    Circle circle = Circle(
+      circleId: const CircleId("1"),
+      strokeWidth: 2,
+      fillColor: Colors.yellow.withOpacity(0.3),
+      strokeColor: Colors.red,
+      center: const LatLng(13.027177383649434, 77.61094094053026),
+      radius:
+          1000, //Radius of the circle in meters; must be positive. The default value is 0.
+    );
+
+    circles.add(circle);
   }
 }
