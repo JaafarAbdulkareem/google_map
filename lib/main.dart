@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_map/section3/section3.dart';
+import 'package:google_map/section7/section7.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Flutter Demo',
-     home: Section3(),
+     home: Section7(),
     );
   }
 }
