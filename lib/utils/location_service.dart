@@ -27,14 +27,12 @@ class LocationService {
 
   void getRealTimeLocationData(void Function(LocationData)? onData) {
     location.changeSettings(
-      // interval: 2000, // means 2 seconds
-      // distanceFilter: 5 // 5 metter
-    );
+        // interval: 2000, // means 2 seconds
+        // distanceFilter: 5 // 5 metter
+        );
     location.onLocationChanged.listen(onData);
   }
 }
-
-
 
 // inquire about location service
 // request permission
