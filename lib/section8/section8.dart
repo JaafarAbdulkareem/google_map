@@ -68,10 +68,11 @@ class _Section8State extends State<Section8> {
               onMapCreated: (controller) async {
                 googleMapController = controller;
                 await myService.updateLocation(
-                  googleMapController: googleMapController,
-                  markers: markers,
-                );
-                setState(() {});
+                    googleMapController: googleMapController,
+                    markers: markers,
+                    refresh: () {
+                      setState(() {});
+                    });
               },
               initialCameraPosition: initialCameraPosition,
             ),
@@ -84,16 +85,16 @@ class _Section8State extends State<Section8> {
                   ListAutocomplete(
                     myService: myService,
                     data: autocompleteData,
-                    onTap: (detailData) {
+                    onTap: (detailData) async {
                       autocompleteData.clear();
                       textEditingController.clear();
 
-                      myService.fetchRoute(
-                          detailData: detailData,
-                          polylines: polylines,
-                          refresh: () {
-                            setState(() {});
-                          });
+                      await myService.fetchRoute(
+                        detailData: detailData,
+                        polylines: polylines,
+                        googleMapController: googleMapController,
+                      );
+                      setState(() {});
                     },
                   ),
                 ],

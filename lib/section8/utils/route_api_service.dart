@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-
 import 'package:google_map/section8/models/body_route_model/body_route_model.dart';
 import 'package:google_map/section8/models/route_model/route_model.dart';
 import 'package:http/http.dart' as http;

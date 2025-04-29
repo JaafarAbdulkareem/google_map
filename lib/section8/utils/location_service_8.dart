@@ -30,7 +30,7 @@ class LocationService8 {
     await checkAndRequiredLocationService();
     await checkAndRequiredLocationPermission();
     location.changeSettings(
-        // interval: 2000, // means 2 seconds
+        interval: 5000, // 2000 means 2 seconds
         // distanceFilter: 5 // 5 metter
         );
     location.onLocationChanged.listen(onData);

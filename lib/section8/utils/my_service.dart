@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as d;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -10,7 +12,6 @@ import 'package:google_map/section8/utils/location_service_8.dart';
 import 'package:google_map/section8/utils/places_api_service.dart';
 import 'package:google_map/section8/utils/route_api_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 import 'package:uuid/uuid.dart';
 
 class MyService {
@@ -19,32 +20,80 @@ class MyService {
   RouteApiService routeApiService = RouteApiService();
   Uuid uuid = const Uuid();
   PolylinePoints polylinePoints = PolylinePoints();
-
+  bool firstCheck = true;
   String? sessionToken;
-  late LocationData currentLocation;
+  late LatLng currentLocation;
+
+  LatLngBounds? bounds;
+
   Future<void> updateLocation({
     required GoogleMapController googleMapController,
     required Set<Marker> markers,
+    required VoidCallback refresh,
   }) async {
     try {
-      currentLocation = await locationService8.getCurrentLocation();
-      LatLng latLng =
-          LatLng(currentLocation.latitude!, currentLocation.longitude!);
-      googleMapController.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: latLng,
-            zoom: 15,
-          ),
-        ),
-      );
-      markers.add(
-        Marker(markerId: const MarkerId("markerId"), position: latLng),
-      );
+      await locationService8.getRealTimeLocationData((locationData) {
+        d.log("lang : ${locationData.latitude}");
+        currentLocation = LatLng(
+          locationData.latitude!,
+          locationData.longitude!,
+        );
+        d.log("bool : $firstCheck");
+        if (firstCheck) {
+          CameraPosition cameraPosition = CameraPosition(
+            target: currentLocation,
+            zoom: 14,
+          );
+          googleMapController.animateCamera(
+            CameraUpdate.newCameraPosition(cameraPosition),
+          );
+          firstCheck = false;
+        } else {
+          if (bounds != null) {
+            googleMapController.animateCamera(
+              CameraUpdate.newLatLngBounds(bounds!, 16),
+            );
+          } else {
+            googleMapController.animateCamera(
+              CameraUpdate.newLatLng(currentLocation),
+            );
+          }
+          markers.add(
+            Marker(
+              markerId: const MarkerId("value"),
+              position: currentLocation,
+            ),
+          );
+        }
+        refresh();
+      });
     } on LocationServiceException catch (_) {
     } on LocationPermissionException catch (_) {
     } catch (_) {}
   }
+  // Future<void> updateLocation({
+  //   required GoogleMapController googleMapController,
+  //   required Set<Marker> markers,
+  // }) async {
+  //   try {
+  //     currentLocation = await locationService8.getCurrentLocation();
+  //     LatLng latLng =
+  //         LatLng(currentLocation.latitude!, currentLocation.longitude!);
+  //     googleMapController.animateCamera(
+  //       CameraUpdate.newCameraPosition(
+  //         CameraPosition(
+  //           target: latLng,
+  //           zoom: 15,
+  //         ),
+  //       ),
+  //     );
+  //     markers.add(
+  //       Marker(markerId: const MarkerId("markerId"), position: latLng),
+  //     );
+  //   } on LocationServiceException catch (_) {
+  //   } on LocationPermissionException catch (_) {
+  //   } catch (_) {}
+  // }
 
   Future<void> autocompleteListen({
     required TextEditingController textEditingController,
@@ -68,10 +117,11 @@ class MyService {
     }
   }
 
-  void fetchRoute({
+  Future<void> fetchRoute({
     required PlaceDetailModel detailData,
     required Set<Polyline> polylines,
-    required VoidCallback refresh,
+    required GoogleMapController googleMapController,
+    // required VoidCallback refresh,
   }) async {
     sessionToken = null;
     BodyRouteModel bodyRoute = BodyRouteModel.fromJson(
@@ -108,11 +158,14 @@ class MyService {
         await routeApiService.getRouteApi(bodyRoute: bodyRoute);
     // log("route : ${routeData.polyline}");
     polylines.add(displayRoute(routeData.polyline.encodedPolyline));
-    refresh();
+    googleMapController
+        .animateCamera(CameraUpdate.newLatLngBounds(bounds!, 16));
+    // refresh();
   }
 
   Polyline displayRoute(String encodedPolyline) {
     List<PointLatLng> result = polylinePoints.decodePolyline(encodedPolyline);
+    selectBoundlePolyline(result);
     Polyline polyline = Polyline(
       width: 5,
       color: const Color(0xFF10293D),
@@ -125,6 +178,31 @@ class MyService {
     );
     return polyline;
     // setState(() {});
+  }
+
+  void selectBoundlePolyline(List<PointLatLng> points) {
+    double southwestLatitude = points.first.latitude;
+    double southwestLongitude = points.first.longitude;
+    double northeastLatitude = points.first.latitude;
+    double northeastLongitude = points.first.longitude;
+    for (var element in points) {
+      southwestLatitude = min(southwestLatitude, element.latitude);
+      southwestLongitude = min(southwestLongitude, element.longitude);
+      northeastLatitude = max(northeastLatitude, element.latitude);
+      northeastLongitude = max(northeastLongitude, element.longitude);
+    }
+    bounds = LatLngBounds(
+      /*minimum point*/
+      southwest: LatLng(
+        southwestLatitude,
+        southwestLongitude,
+      ),
+      /*maximum point */
+      northeast: LatLng(
+        northeastLatitude,
+        northeastLongitude,
+      ),
+    );
   }
 
   Future<PlaceDetailModel> getPlaceDetailApi({required String placeId}) async {
