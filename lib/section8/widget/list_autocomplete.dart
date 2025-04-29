@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_map/section8/models/autocomplet/autocomplet_model.dart';
+import 'package:google_map/section8/models/autocomplet_model/autocomplet_model.dart';
 import 'package:google_map/section8/models/place_detail_model/place_detail_model.dart';
 import 'package:google_map/section8/utils/places_api_service.dart';
 

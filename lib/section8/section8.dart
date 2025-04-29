@@ -1,9 +1,14 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:google_map/section8/models/autocomplet/autocomplet_model.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:google_map/section8/models/autocomplet_model/autocomplet_model.dart';
+import 'package:google_map/section8/models/body_route_model/body_route_model.dart';
+import 'package:google_map/section8/models/place_detail_model/place_detail_model.dart';
+import 'package:google_map/section8/models/route_model/route_model.dart';
 import 'package:google_map/section8/utils/location_service_8.dart';
 import 'package:google_map/section8/utils/places_api_service.dart';
+import 'package:google_map/section8/utils/route_api_service.dart';
 import 'package:google_map/section8/widget/custom_text_field.dart';
 import 'package:google_map/section8/widget/list_autocomplete.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -24,9 +29,14 @@ class _Section8State extends State<Section8> {
   late TextEditingController textEditingController;
   late LocationService8 locationService8;
   late PlacesApiService placesApiService;
+  late RouteApiService routeApiService;
   List<AutocompleteModel> autocompleteData = [];
   late Uuid uuid;
   String? sessionToken;
+  late LocationData currentLocation;
+  late PolylinePoints polylinePoints;
+  Set<Polyline> polylines = {};
+
   @override
   void initState() {
     uuid = const Uuid();
@@ -35,11 +45,14 @@ class _Section8State extends State<Section8> {
     textEditingController.addListener(searchAutocomplete);
     locationService8 = LocationService8();
     placesApiService = PlacesApiService();
+    routeApiService = RouteApiService();
+    polylinePoints = PolylinePoints();
+
     super.initState();
   }
 
   void searchAutocomplete() async {
-     sessionToken ??= uuid.v4();
+    sessionToken ??= uuid.v4();
     if (textEditingController.text.isEmpty) {
       autocompleteData.clear();
       textEditingController.clear();
@@ -47,14 +60,12 @@ class _Section8State extends State<Section8> {
     } else {
       try {
         autocompleteData.clear();
-        log(textEditingController.text);
         List<AutocompleteModel> places =
             await placesApiService.getAutocompleteApi(
           input: textEditingController.text,
-           sessiontoken: sessionToken!,
+          sessiontoken: sessionToken!,
         );
         autocompleteData.addAll(places);
-        log("length: ${autocompleteData.length}");
         setState(() {});
       } on AutocompleteException catch (_) {
       } catch (_) {}
@@ -76,6 +87,7 @@ class _Section8State extends State<Section8> {
           children: [
             GoogleMap(
               markers: markers,
+              polylines: polylines,
               onMapCreated: (controller) {
                 googleMapController = controller;
                 updateLocation();
@@ -90,11 +102,11 @@ class _Section8State extends State<Section8> {
                   ),
                   ListAutocomplete(
                     data: autocompleteData,
-                  
                     onTap: (detailData) {
                       autocompleteData.clear();
                       textEditingController.clear();
                       sessionToken = null;
+                      fetchRoute(detailData);
                       setState(() {});
                     },
                   ),
@@ -109,8 +121,7 @@ class _Section8State extends State<Section8> {
 
   void updateLocation() async {
     try {
-      LocationData currentLocation =
-          await locationService8.getCurrentLocation();
+      currentLocation = await locationService8.getCurrentLocation();
       LatLng latLng =
           LatLng(currentLocation.latitude!, currentLocation.longitude!);
       googleMapController.animateCamera(
@@ -122,7 +133,7 @@ class _Section8State extends State<Section8> {
         ),
       );
       markers.add(
-        Marker(markerId: MarkerId("markerId"), position: latLng),
+        Marker(markerId: const MarkerId("markerId"), position: latLng),
       );
       setState(() {
         log("setState : $latLng");
@@ -130,5 +141,61 @@ class _Section8State extends State<Section8> {
     } on LocationServiceException catch (_) {
     } on LocationPermissionException catch (_) {
     } catch (_) {}
+  }
+
+  void fetchRoute(PlaceDetailModel detailData) async {
+    BodyRouteModel bodyRoute = BodyRouteModel.fromJson(
+      {
+        "origin": {
+          "location": {
+            "latLng": {
+              "latitude": currentLocation.latitude,
+              "longitude": currentLocation.longitude
+            }
+          }
+        },
+        "destination": {
+          "location": {
+            "latLng": {
+              "latitude": detailData.geometry!.location!.lat,
+              "longitude": detailData.geometry!.location!.lng
+            }
+          }
+        },
+        "travelMode": "DRIVE",
+        "routingPreference": "TRAFFIC_AWARE",
+        "computeAlternativeRoutes": false,
+        "routeModifiers": {
+          "avoidTolls": false,
+          "avoidHighways": false,
+          "avoidFerries": false
+        },
+        "languageCode": "en-US",
+        "units": "IMPERIAL"
+      },
+    );
+    RouteModel routeData =
+        await routeApiService.getRouteApi(bodyRoute: bodyRoute);
+    log("route : ${routeData.polyline}");
+
+    displayRoute(routeData.polyline.encodedPolyline);
+  }
+
+  void displayRoute(String encodedPolyline) {
+    List<PointLatLng> result = polylinePoints.decodePolyline(encodedPolyline);
+    Polyline polyline = Polyline(
+      width: 5,
+      color: const Color(0xFF10293D),
+      polylineId: const PolylineId("value"),
+      points: result
+          .map(
+            (e) => LatLng(e.latitude, e.longitude),
+          )
+          .toList(),
+    );
+    polylines.add(polyline);
+    setState(() {
+      
+    });
   }
 }

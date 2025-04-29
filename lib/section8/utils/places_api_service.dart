@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:google_map/section8/models/autocomplet/autocomplet_model.dart';
+import 'package:google_map/section8/models/autocomplet_model/autocomplet_model.dart';
 import 'package:google_map/section8/models/place_detail_model/place_detail_model.dart';
 import 'package:http/http.dart' as https;
 
