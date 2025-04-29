@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_map/section8/models/autocomplet_model/autocomplet_model.dart';
 import 'package:google_map/section8/models/place_detail_model/place_detail_model.dart';
+import 'package:google_map/section8/utils/my_service.dart';
 import 'package:google_map/section8/utils/places_api_service.dart';
 
 class ListAutocomplete extends StatelessWidget {
   const ListAutocomplete({
     super.key,
+    required this.myService,
     required this.data,
     required this.onTap,
   });
+  final MyService myService;
   final List<AutocompleteModel> data;
   final Function(PlaceDetailModel) onTap;
   @override
@@ -23,10 +26,11 @@ class ListAutocomplete extends StatelessWidget {
           itemBuilder: (context, index) => ListTile(
             onTap: () async {
               try {
-                PlaceDetailModel detailData =
-                    await PlacesApiService().getPlaceDetailApi(
-                  placeId: data[index].placeId,
-                );
+                PlaceDetailModel detailData = await myService.getPlaceDetailApi(
+                    placeId: data[index].placeId);
+                //     await PlacesApiService().getPlaceDetailApi(
+                //   placeId: data[index].placeId,
+                // );
                 onTap(detailData);
               } on PlaceDetailException catch (_) {
               } catch (_) {}
