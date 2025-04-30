@@ -366,6 +366,56 @@ class LocationService {
 
 
 
+###Bounds
+
+##minimum point for southwest
+##maximu point for northeast
+
+```dart
+ Polyline displayRoute(String encodedPolyline) {
+    List<PointLatLng> result = polylinePoints.decodePolyline(encodedPolyline);
+    selectBoundlePolyline(result);
+    Polyline polyline = Polyline(
+      width: 5,
+      color: const Color(0xFF10293D),
+      polylineId: const PolylineId("value"),
+      points: result
+          .map(
+            (e) => LatLng(e.latitude, e.longitude),
+          )
+          .toList(),
+    );
+    return polyline;
+    // setState(() {});
+  }
+
+  void selectBoundlePolyline(List<PointLatLng> points) {
+    double southwestLatitude = points.first.latitude;
+    double southwestLongitude = points.first.longitude;
+    double northeastLatitude = points.first.latitude;
+    double northeastLongitude = points.first.longitude;
+    for (var element in points) {
+      southwestLatitude = min(southwestLatitude, element.latitude);
+      southwestLongitude = min(southwestLongitude, element.longitude);
+      northeastLatitude = max(northeastLatitude, element.latitude);
+      northeastLongitude = max(northeastLongitude, element.longitude);
+    }
+    bounds = LatLngBounds(
+      /*minimum point*/
+      southwest: LatLng(
+        southwestLatitude,
+        southwestLongitude,
+      ),
+      /*maximum point */
+      northeast: LatLng(
+        northeastLatitude,
+        northeastLongitude,
+      ),
+    );
+  }
+```
+
+
 
 ---
 
