@@ -1,7 +1,4 @@
-import 'dart:async';
-import 'dart:developer' as d;
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_map/section8/models/autocomplet_model/autocomplet_model.dart';
@@ -32,39 +29,42 @@ class MyService {
     required VoidCallback refresh,
   }) async {
     try {
-      await locationService8.getRealTimeLocationData((locationData) {
-        d.log("lang : ${locationData.latitude}");
+      await locationService8.getRealTimeLocationData((locationData) async {
         currentLocation = LatLng(
           locationData.latitude!,
           locationData.longitude!,
         );
-        d.log("bool : $firstCheck");
-        if (firstCheck) {
-          CameraPosition cameraPosition = CameraPosition(
-            target: currentLocation,
-            zoom: 14,
-          );
-          googleMapController.animateCamera(
-            CameraUpdate.newCameraPosition(cameraPosition),
-          );
-          firstCheck = false;
-        } else {
-          if (bounds != null) {
-            googleMapController.animateCamera(
-              CameraUpdate.newLatLngBounds(bounds!, 16),
-            );
-          } else {
-            googleMapController.animateCamera(
-              CameraUpdate.newLatLng(currentLocation),
-            );
-          }
-          markers.add(
-            Marker(
-              markerId: const MarkerId("value"),
-              position: currentLocation,
-            ),
-          );
-        }
+
+        // if (firstCheck) {
+        //   CameraPosition cameraPosition = CameraPosition(
+        //     target: currentLocation,
+        //     zoom: 14,
+        //   );
+        //   googleMapController.animateCamera(
+        //     CameraUpdate.newCameraPosition(cameraPosition),
+        //   );
+        //   firstCheck = false;
+        // } else {
+
+        googleMapController.animateCamera(
+          CameraUpdate.newLatLng(currentLocation),
+        );
+        // if (bounds != null) {
+        //   googleMapController.animateCamera(
+        //     CameraUpdate.newLatLngBounds(bounds!, 16),
+        //   );
+        // } else {
+        //   googleMapController.animateCamera(
+        //     CameraUpdate.newLatLng(currentLocation),
+        //   );
+        // }
+        markers.add(
+          Marker(
+            markerId: const MarkerId("value"),
+            position: currentLocation,
+          ),
+        );
+        // }
         refresh();
       });
     } on LocationServiceException catch (_) {
@@ -120,6 +120,7 @@ class MyService {
   Future<void> fetchRoute({
     required PlaceDetailModel detailData,
     required Set<Polyline> polylines,
+    required Set<Marker> markers,
     required GoogleMapController googleMapController,
     // required VoidCallback refresh,
   }) async {
@@ -158,6 +159,34 @@ class MyService {
         await routeApiService.getRouteApi(bodyRoute: bodyRoute);
     // log("route : ${routeData.polyline}");
     polylines.add(displayRoute(routeData.polyline.encodedPolyline));
+    Marker begin = Marker(
+      icon: AssetMapBitmap(
+        "assets/images/dragon-removebg-preview.png",
+        width: 40,
+        height: 40,
+      ),
+      markerId: const MarkerId("begin"),
+      position: LatLng(
+        currentLocation.latitude,
+        currentLocation.longitude,
+      ),
+      infoWindow: const InfoWindow(title: "begin"),
+    );
+    markers.add(begin);
+    Marker end = Marker(
+      icon: AssetMapBitmap(
+        "assets/images/dragon-removebg-preview.png",
+        width: 40,
+        height: 40,
+      ),
+      markerId: const MarkerId("end"),
+      position: LatLng(
+        detailData.geometry!.location!.lat!,
+        detailData.geometry!.location!.lng!,
+      ),
+      infoWindow: const InfoWindow(title: "end"),
+    );
+    markers.add(end);
     googleMapController
         .animateCamera(CameraUpdate.newLatLngBounds(bounds!, 16));
     // refresh();
@@ -208,6 +237,13 @@ class MyService {
   Future<PlaceDetailModel> getPlaceDetailApi({required String placeId}) async {
     return await PlacesApiService().getPlaceDetailApi(
       placeId: placeId,
+    );
+  }
+
+  Future<void> selectDirection(
+      {required GoogleMapController googleMapController}) async {
+    await googleMapController.animateCamera(
+      CameraUpdate.newLatLngZoom(currentLocation, 18),
     );
   }
 }

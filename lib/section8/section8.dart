@@ -16,19 +16,20 @@ class Section8 extends StatefulWidget {
 
 class _Section8State extends State<Section8> {
   Set<Marker> markers = {};
+  Set<Polyline> polylines = {};
   late CameraPosition initialCameraPosition;
   late GoogleMapController googleMapController;
   late TextEditingController textEditingController;
   late MyService myService;
   List<AutocompleteModel> autocompleteData = [];
   late Uuid uuid;
-  Set<Polyline> polylines = {};
   Timer? time;
 
   @override
   void initState() {
     uuid = const Uuid();
-    initialCameraPosition = const CameraPosition(target: LatLng(0, 0));
+    initialCameraPosition =
+        const CameraPosition(target: LatLng(0, 0), zoom: 14);
     textEditingController = TextEditingController();
     textEditingController.addListener(searchAutocomplete);
     myService = MyService();
@@ -92,12 +93,25 @@ class _Section8State extends State<Section8> {
                       await myService.fetchRoute(
                         detailData: detailData,
                         polylines: polylines,
+                        markers: markers,
                         googleMapController: googleMapController,
                       );
                       setState(() {});
                     },
                   ),
                 ],
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+
+              child: ElevatedButton(
+                onPressed: () async{
+                  await myService.selectDirection(googleMapController: googleMapController);
+                },
+                child: const Text("Directions"),
               ),
             ),
           ],
