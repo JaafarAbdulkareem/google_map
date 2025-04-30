@@ -366,10 +366,11 @@ class LocationService {
 
 
 
-### Bounds
 
-## minimum point for southwest
-## maximu point for northeast
+## Bounds
+
+### minimum point for southwest
+### maximu point for northeast
 
 ```dart
  Polyline displayRoute(String encodedPolyline) {
