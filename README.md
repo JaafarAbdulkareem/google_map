@@ -1,5 +1,7 @@
 ##  Google Maps Flutter Notes
-
+```
+	.\gradlew signingReport
+```
 sha1 each project have same sha because the make debug when you upload to google store the sha change so should change for google map
 
 
